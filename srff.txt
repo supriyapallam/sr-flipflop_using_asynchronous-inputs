@@ -1,0 +1,66 @@
+//Design Code
+module sr_ff(output reg q, output wire qbar,input clk,s,r,pre,clr);
+  
+  reg q1;
+  always@(posedge clk)
+    begin
+      q1=q;
+      case({s,r})
+        2'b00 : q1 <= q;
+        2'b01 : q1 <= 1'b0;
+        2'b10 : q1 <= 1'b1;
+        2'b11 : q1 <= 1'bxx;
+      endcase
+    end
+  assign q = pre ? 1'b1 : (clr ? 1'b0 : q1);
+  
+  assign qbar = ~q;
+endmodule
+
+//Test Bench Code
+module tb();
+  reg clk,s,r;
+  reg pre,clr;
+  wire q,qbar;
+  
+  sr_ff DUT(q,qbar,clk,s,r,pre,clr);
+  
+  initial
+    begin
+      clk=1'b0;
+      forever #5 clk = ~clk;
+    end
+  
+  initial
+    begin
+      pre = 1'b1;
+      #10;
+      pre = 1'b0;
+      #10;
+      clr = 1'b0;
+      #10;
+      clr = 1'b1;
+      #10;
+      
+      s=1'b0; r=1'b0;
+      #20;
+      s=1'b0; r=1'b1;
+      #20;
+      s=1'b1; r=1'b0;
+      #20; 
+      s=1'b1; r=1'b1;
+      #20;
+      $finish;
+    end
+  
+  initial
+    begin
+      $dumpfile("test.vcd");
+      $dumpvars(1);
+    end
+  
+  initial
+    begin 
+      $monitor("clk=%0b, s=%0b, r=%0b, q=%0b, qbar=%0b, pre=%0b, clr=%0b",clk,s,r,q,qbar,pre,clr);
+    end
+endmodule
